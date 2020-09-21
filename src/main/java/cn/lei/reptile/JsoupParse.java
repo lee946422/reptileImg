@@ -41,7 +41,7 @@ public class JsoupParse {
      * @Description //TODO 文件存储处理 * @Date 18:35 2020/9/17
      * @Param []
      **/
-    public static String saveImg(int page) {
+    public static String saveImg(int minPage,int maxPage) {
         //每天生成一个文件夹,并按关键字分类
         String fileJia = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         String parPath = position.concat("//") + fileJia.concat("//") + word;
@@ -50,7 +50,7 @@ public class JsoupParse {
         if (!file1.exists()) {
             file1.mkdirs();
         }
-        List<String> searchImg = searchImg(page);
+        List<String> searchImg = searchImg(minPage,maxPage);
         if (!searchImg.isEmpty()) {
             for (int i = 0; i < searchImg.size(); i++) {
                 String name = UUID.randomUUID().toString() + ".jpg";
@@ -64,7 +64,7 @@ public class JsoupParse {
             }
             return "下载成功,共下载" + searchImg.size() + "个文件";
         }
-        return "下载路径不存在";
+        return "未发现可下载的地址";
     }
 
     /**
@@ -119,8 +119,8 @@ public class JsoupParse {
      * @Description //TODO 获取图片的访问地址* @Date 18:09 2020/9/17
      * @Param []
      **/
-    public static List<String> searchImg(int page) {
-        for (int i = 0; i < page; i++) {
+    public static List<String> searchImg(int minPage,int maxpage) {
+        for (int i = minPage-1; i <= maxpage-1; i++) {
             Document documentPage = null;
             try {
                 documentPage= Jsoup.connect("http://pic.netbian.com/e/search/result/index.php?page=" + i + "&searchid=" + searchid + "").get();
@@ -166,13 +166,27 @@ public class JsoupParse {
                     .data("show", "title")
                     .userAgent("Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)")//设置urer-agent  get();
                     .post();
-            int childNodeSize = document.getElementsByClass("page").first().childNodeSize();
-            //该分类下的总页数
-            pageSize = Integer.valueOf(document.getElementsByClass("page").first().child(childNodeSize - 2).text());
+            int childNodeSize = 0;
             //获取该分类的searchid
-            searchid = (int) (Integer.valueOf(document.baseUri().split("=")[1]));
-            return pageSize;
+            try {
+                searchid = (int) (Integer.valueOf(document.baseUri().split("=")[1]));
+            } catch (NumberFormatException e) {
+                return 0;
+            } catch (ArrayIndexOutOfBoundsException a) {
+                return 0;
+            }
+            try {
+                childNodeSize = document.getElementsByClass("page").first().childNodeSize();
+                //该分类下的总页数
+                pageSize = Integer.valueOf(document.getElementsByClass("page").first().child(childNodeSize - 2).text());
+
+                return pageSize;
+            } catch (Exception e) {
+                return -1;
+            }
+
         } catch (IOException e) {
+            e.getStackTrace();
             return 0;
         }
     }
