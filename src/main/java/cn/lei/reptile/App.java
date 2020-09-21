@@ -22,7 +22,9 @@ public class App {
                 System.out.println("无效的图片类型,请重新输入!!");
             } else {
                 //下载并打印信息
-                System.out.println(JsoupParse.saveImg(word));
+                System.out.println("总共"+JsoupParse.getInfo(word)+"页,每页10-40张.要下载多少页?");
+                int page = scanner.nextInt();
+                System.out.println(JsoupParse.saveImg(page));
                 System.out.println("退出:1");
                 System.out.println("继续:2");
                 int info= 0;
